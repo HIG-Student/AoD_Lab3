@@ -235,12 +235,14 @@ abstract class Benchmarker
 
     List<PrepareBenchmarkMethod<?>> prepareMethods = new LinkedList<PrepareBenchmarkMethod<?>>();
 
+    @SuppressWarnings("hiding")
     public <T> Benchmarker prepare(PrepareBenchmarkMethod<T> method)
     {
         prepareMethods.add(method);
         return this;
     }
 
+    @SuppressWarnings("hiding")
     public interface PrepareBenchmarkMethod<T>
     {
         void run(T data);

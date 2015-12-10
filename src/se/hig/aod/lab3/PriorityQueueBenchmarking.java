@@ -109,9 +109,11 @@ public class PriorityQueueBenchmarking
                     // actual loading
                     for (Integer i : data)
                         queue.enqueue(i);
-                    
+
                     // 3
                     // benchmark operation with 6400.txt
+
+                    // Kod att köra
 
                     BenchmarkResult result = new Benchmarker()
                     {
@@ -139,6 +141,7 @@ public class PriorityQueueBenchmarking
         void messure(PriorityQueue<Integer> queue) throws Exception;
     }
 
+    @SuppressWarnings("hiding")
     static class Action<T>
     {
         public final String description;

@@ -1,4 +1,4 @@
-Queue type: HeapPriorityQueue
+﻿Queue type: HeapPriorityQueue
 	Unsorted
 		Insert
 			10000: 0
@@ -51,7 +51,7 @@ Queue type: HeapPriorityQueue
 			320000: 0
 			640000: 0
 Queue type: BSTPriorityQueue
-	Unsorted // balanserad
+	Unsorted
 		Insert
 			10000: 0
 			20000: 0
@@ -68,8 +68,8 @@ Queue type: BSTPriorityQueue
 			160000: 0
 			320000: 0
 			640000: 0
-	Sorted // obalanserad åt vänster
-		Insert // O(N) , obalanserad
+	Sorted
+		Insert
 			10000: 266
 			20000: 500
 			40000: 969
@@ -77,7 +77,7 @@ Queue type: BSTPriorityQueue
 			160000: 4141
 			320000: 7933
 			640000: 22796
-		Remove // Tar bort root O(1)
+		Remove
 			10000: 0
 			20000: 0
 			40000: 0
@@ -85,8 +85,8 @@ Queue type: BSTPriorityQueue
 			160000: 0
 			320000: 0
 			640000: 0
-	Sorted and reversed // obalanserad åt höger
-		Insert // O(N) , obalanserad
+	Sorted and reversed
+		Insert
 			10000: 281
 			20000: 531
 			40000: 1031
@@ -94,7 +94,7 @@ Queue type: BSTPriorityQueue
 			160000: 3938
 			320000: 8282
 			640000: 23846
-		Remove // Tar bort most-right O(N)
+		Remove
 			10000: 172
 			20000: 422
 			40000: 922

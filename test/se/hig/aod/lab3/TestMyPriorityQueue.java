@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import se.hig.aod.lab3.MyPriorityQueue.MyPriorityQueueIsEmptyException;
@@ -194,7 +193,8 @@ public class TestMyPriorityQueue
             assertEquals("Recursive size is incorrect", size, queue.getSizeRecursive());
         }
 
-        for (Integer i : testValues[0].values)
+        for (@SuppressWarnings("unused")
+        Integer i : testValues[0].values)
         {
             queue.dequeue();
             size--;

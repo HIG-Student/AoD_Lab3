@@ -8,6 +8,7 @@ package se.hig.aod.lab3;
  * 
  * @author Viktor Hanstorp (ndi14vhp@student.hig.se)
  */
+@SuppressWarnings("hiding")
 public interface MyPriorityQueue<T extends Comparable<? super T>>
 {
     /**
