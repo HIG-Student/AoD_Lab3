@@ -1,30 +1,7 @@
 package se.hig.aod.lab3;
 
-
-
-
-
-
-
-
-
-
-
-
-//OBS!!!!!!!!!!!!!!!!!!!!!
-
-
-// REDO WITH AVL TREE
-
-
-
-
-
-
-
-
 /**
- * Implementation of the {@link MyPriorityQueue} using a binary tree
+ * Implementation of the {@link MyPriorityQueue} using a binary AVL tree
  *
  * @param <T>
  *            the type to store
@@ -33,7 +10,7 @@ package se.hig.aod.lab3;
 @SuppressWarnings("hiding")
 public class MyBSTPriorityQueue<T extends Comparable<? super T>> implements MyPriorityQueue<T>
 {
-    MyBSTPriorityQueueNode root;
+    MyBSTPriorityQueueNodeHolder root = new MyBSTPriorityQueueNodeHolder(null);
     int size = 0;
 
     /**
@@ -42,7 +19,7 @@ public class MyBSTPriorityQueue<T extends Comparable<? super T>> implements MyPr
     @Override
     public void clear()
     {
-        root = null;
+        root.set(null);
         size = 0;
     }
 
@@ -52,7 +29,7 @@ public class MyBSTPriorityQueue<T extends Comparable<? super T>> implements MyPr
     @Override
     public boolean isEmpty()
     {
-        return root == null;
+        return root.isEmpty();
     }
 
     /**
@@ -89,11 +66,11 @@ public class MyBSTPriorityQueue<T extends Comparable<? super T>> implements MyPr
     public void enqueue(T element)
     {
         if (element == null)
-            throw new MyPriorityQueueNullNotAllowedException();
+            throw new MyPriorityQueueNullNotAllowedException("You are not allowed to insert 'null' in the queue");
 
         MyBSTPriorityQueueNode newNode = new MyBSTPriorityQueueNode(element);
         if (isEmpty())
-            root = newNode;
+            root.set(newNode);
         else
             root.add(newNode);
 
@@ -107,19 +84,21 @@ public class MyBSTPriorityQueue<T extends Comparable<? super T>> implements MyPr
     public T dequeue()
     {
         if (isEmpty())
-            throw new MyPriorityQueueIsEmptyException();
+            throw new MyPriorityQueueIsEmptyException("You cannot dequeue on a empty list");
 
-        MyBSTPriorityQueueNode target = root.getBiggest();
+        MyBSTPriorityQueueNodeHolder target = root.node.getBiggest().holder;
+        T value = target.node.data;
 
         if (root == target) // No more right, take root
-            root = root.left.setParent(null);
+            root.set(root.node.left.node);
         else
-            // get right
-            if (target.left != null)
-                target.parent.setRight(target.left);
+        {
+            target.set(target.node.left.node);
+            target.parent.holder.balance();
+        }
 
-        size++;
-        return target.data;
+        size--;
+        return value;
     }
 
     /**
@@ -129,18 +108,141 @@ public class MyBSTPriorityQueue<T extends Comparable<? super T>> implements MyPr
     public T getFront()
     {
         if (isEmpty())
-            throw new MyPriorityQueueIsEmptyException();
+            throw new MyPriorityQueueIsEmptyException("You cannot get front on a empty list");
 
-        return root.data;
+        return root.node.getBiggest().data;
+    }
+
+    void print()
+    {
+        subPrint(root.node, 0);
+    }
+
+    void subPrint(MyBSTPriorityQueueNode node, int depth)
+    {
+        if (node == null)
+            return;
+
+        subPrint(node.right.node, depth + 1);
+        System.out.println(new String(new char[depth]).replace('\0', '\t') + node.data);
+        subPrint(node.left.node, depth + 1);
+    }
+
+    class MyBSTPriorityQueueNodeHolder
+    {
+        MyBSTPriorityQueueNode parent;
+        MyBSTPriorityQueueNode node;
+
+        MyBSTPriorityQueueNodeHolder(MyBSTPriorityQueueNode parent)
+        {
+            this.parent = parent;
+        }
+
+        boolean isEmpty()
+        {
+            return node == null;
+        }
+
+        void set(MyBSTPriorityQueueNode node)
+        {
+            this.node = node;
+
+            if (node != null)
+                node.holder = this;
+        }
+
+        MyBSTPriorityQueueNode get()
+        {
+            return node;
+        }
+
+        int getSize()
+        {
+            return isEmpty() ? 0 : node.getSize();
+        }
+
+        int getHeight()
+        {
+            return isEmpty() ? 0 : node.getHeight();
+        }
+
+        void add(MyBSTPriorityQueueNode node)
+        {
+            if (isEmpty())
+            {
+                set(node);
+                if (parent != null)
+                    parent.holder.balance();
+            }
+            else
+            {
+                this.node.add(node);
+            }
+        }
+
+        MyBSTPriorityQueueNode rotate(MyBSTPriorityQueueNode child)
+        {
+            if (isEmpty())
+                throw new MyPriorityQueueInternalException("Holder got no node");
+
+            if (node.left.node == child)
+            {
+                node.left.set(child.right.node);
+                child.right.set(node);
+            }
+            else
+                if (node.right.node == child)
+                {
+                    node.right.set(child.left.node);
+                    child.left.set(node);
+                }
+                else
+                    throw new MyPriorityQueueInternalException("Element is not a child");
+
+            set(child);
+            return child;
+        }
+
+        void balance()
+        {
+            if (isEmpty())
+                return;
+
+            int leftHeight = node.left.getHeight();
+            int rightHeight = node.right.getHeight();
+
+            if (Math.abs(leftHeight - rightHeight) > 1)
+            {
+                if (leftHeight > rightHeight)
+                {
+                    if (node.left.node.left.getHeight() > node.left.node.right.getHeight())
+                        rotate(node.left.node);
+                    else
+                        rotate(node.left.rotate(node.left.node.right.node));
+                }
+                else
+                {
+                    if (node.right.node.right.getHeight() < node.right.node.left.getHeight())
+                        rotate(node.right.rotate(node.right.node.left.node));
+                    else
+                        rotate(node.right.node);
+                }
+            }
+            else
+            {
+                if (this != root)
+                    parent.holder.balance();
+            }
+        }
     }
 
     class MyBSTPriorityQueueNode
     {
-        MyBSTPriorityQueueNode parent;
+        MyBSTPriorityQueueNodeHolder holder;
 
-        MyBSTPriorityQueueNode left;
+        MyBSTPriorityQueueNodeHolder left = new MyBSTPriorityQueueNodeHolder(this);
         T data;
-        MyBSTPriorityQueueNode right;
+        MyBSTPriorityQueueNodeHolder right = new MyBSTPriorityQueueNodeHolder(this);
 
         MyBSTPriorityQueueNode(T data)
         {
@@ -149,62 +251,43 @@ public class MyBSTPriorityQueue<T extends Comparable<? super T>> implements MyPr
 
         MyBSTPriorityQueueNode getBiggest()
         {
-            if (right != null)
-                return right.getBiggest();
-            else
-                return this;
+            return right.isEmpty() ? this : right.node.getBiggest();
         }
 
         MyBSTPriorityQueueNode getSmalest()
         {
-            if (left != null)
-                return left.getSmalest();
-            else
-                return this;
-        }
-
-        MyBSTPriorityQueueNode setParent(MyBSTPriorityQueueNode parent)
-        {
-            this.parent = parent;
-            return this;
+            return left.isEmpty() ? this : left.node.getBiggest();
         }
 
         void add(MyBSTPriorityQueueNode node)
         {
             if (node.data.compareTo(data) >= 0)
-                if (right != null)
-                    right.add(node);
-                else
-                    right = node.setParent(this);
+                right.add(node);
             else
-                if (left != null)
-                    left.add(node);
-                else
-                    left = node.setParent(this);
-        }
-
-        MyBSTPriorityQueueNode setRight(MyBSTPriorityQueueNode node)
-        {
-            right = node;
-            node.parent = this;
-            return this;
-        }
-
-        MyBSTPriorityQueueNode setLeft(MyBSTPriorityQueueNode node)
-        {
-            left = node;
-            node.parent = this;
-            return this;
+                left.add(node);
         }
 
         int getSize()
         {
             int size = 1;
-            if (left != null)
-                size += left.getSize();
-            if (right != null)
-                size += right.getSize();
+            size += left.getSize();
+            size += right.getSize();
             return size;
+        }
+
+        int getLeftHeight()
+        {
+            return left.getSize();
+        }
+
+        int getRightHeight()
+        {
+            return left.getSize();
+        }
+
+        int getHeight()
+        {
+            return 1 + Math.max(left.getHeight(), right.getHeight());
         }
     }
 }

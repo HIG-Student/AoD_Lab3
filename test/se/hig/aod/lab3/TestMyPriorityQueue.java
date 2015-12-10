@@ -11,6 +11,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import se.hig.aod.lab3.MyPriorityQueue.MyPriorityQueueIsEmptyException;
+import se.hig.aod.lab3.MyPriorityQueue.MyPriorityQueueNullNotAllowedException;
 
 /**
  * JUnit test for {@link MyPriorityQueue}
@@ -19,37 +20,141 @@ import se.hig.aod.lab3.MyPriorityQueue.MyPriorityQueueIsEmptyException;
  */
 public class TestMyPriorityQueue
 {
-    MyPriorityQueue<Integer> queue;
+    MyBSTPriorityQueue<Integer> queue;
 
-    static Integer[] testValues = new Integer[]
+    static class TestValuesBatch
     {
-            new Integer(1),
-            new Integer(2),
-            new Integer(7),
-            new Integer(6),
-            new Integer(9),
-            new Integer(10),
-            new Integer(3),
-            new Integer(45),
-            new Integer(4),
-            new Integer(2),
-            new Integer(11),
-            new Integer(10)
-    };
+        final String description;
+        final Integer[] values;
+        final Integer[] sorted;
 
-    static Integer[] sortedTestValues;
+        TestValuesBatch(String description, Integer[] values)
+        {
+            this.description = description;
+            this.values = values;
 
-    /**
-     * Set up sorted values
-     */
-    @BeforeClass
-    static public void setUpSortedValues()
-    {
-        sortedTestValues = testValues.clone();
-
-        // Biggest first
-        Arrays.sort(sortedTestValues, Collections.reverseOrder());
+            Arrays.sort(sorted = values.clone(), Collections.reverseOrder()); // Biggest
+                                                                              // first
+        }
     }
+
+    static TestValuesBatch[] testValues = new TestValuesBatch[]
+    {
+            new TestValuesBatch("Ordered", new Integer[]
+            {
+                    new Integer(1000),
+                    new Integer(2000),
+                    new Integer(3000),
+                    new Integer(4000),
+                    new Integer(5000),
+                    new Integer(6000),
+                    new Integer(7000),
+                    new Integer(8000),
+                    new Integer(9000),
+                    new Integer(10000),
+                    new Integer(11000),
+                    new Integer(12000)
+            }),
+            new TestValuesBatch("Ordered - reversed", new Integer[]
+            {
+                    new Integer(12000),
+                    new Integer(11000),
+                    new Integer(10000),
+                    new Integer(9000),
+                    new Integer(8000),
+                    new Integer(7000),
+                    new Integer(6000),
+                    new Integer(5000),
+                    new Integer(4000),
+                    new Integer(3000),
+                    new Integer(2000),
+                    new Integer(1000)
+            }),
+            new TestValuesBatch("Ordered - odd front", new Integer[]
+            {
+                    new Integer(12000),
+                    new Integer(2000),
+                    new Integer(3000),
+                    new Integer(4000),
+                    new Integer(5000),
+                    new Integer(6000),
+                    new Integer(7000),
+                    new Integer(8000),
+                    new Integer(9000),
+                    new Integer(10000),
+                    new Integer(11000)
+            }),
+            new TestValuesBatch("Ordered - reversed - odd front", new Integer[]
+            {
+                    new Integer(1000),
+                    new Integer(11000),
+                    new Integer(10000),
+                    new Integer(9000),
+                    new Integer(8000),
+                    new Integer(7000),
+                    new Integer(6000),
+                    new Integer(5000),
+                    new Integer(4000),
+                    new Integer(3000),
+                    new Integer(2000)
+            }),
+            new TestValuesBatch("Ordered - odd back", new Integer[]
+            {
+                    new Integer(2000),
+                    new Integer(3000),
+                    new Integer(4000),
+                    new Integer(5000),
+                    new Integer(6000),
+                    new Integer(7000),
+                    new Integer(8000),
+                    new Integer(9000),
+                    new Integer(10000),
+                    new Integer(1000)
+            }),
+            new TestValuesBatch("Ordered - reversed - odd back", new Integer[]
+            {
+                    new Integer(11000),
+                    new Integer(10000),
+                    new Integer(9000),
+                    new Integer(8000),
+                    new Integer(7000),
+                    new Integer(6000),
+                    new Integer(5000),
+                    new Integer(4000),
+                    new Integer(3000),
+                    new Integer(12000)
+            }),
+            new TestValuesBatch("Random", new Integer[]
+            {
+                    new Integer(1000),
+                    new Integer(2000),
+                    new Integer(7000),
+                    new Integer(6000),
+                    new Integer(9000),
+                    new Integer(10000),
+                    new Integer(3000),
+                    new Integer(45000),
+                    new Integer(4000),
+                    new Integer(2000),
+                    new Integer(11000),
+                    new Integer(10000)
+            }),
+            new TestValuesBatch("All but one", new Integer[]
+            {
+                    new Integer(1000),
+                    new Integer(1000),
+                    new Integer(1000),
+                    new Integer(1000),
+                    new Integer(7000),
+                    new Integer(1000),
+                    new Integer(1000),
+                    new Integer(1000),
+                    new Integer(1000),
+                    new Integer(1000),
+                    new Integer(1000),
+            })
+
+    };
 
     /**
      * Init the queue
@@ -69,34 +174,119 @@ public class TestMyPriorityQueue
         assertTrue("Should be empty at init", queue.isEmpty());
         assertFalse("Should not be full at init", queue.isFull());
         assertEquals("Should be size 0 at init", 0, queue.size());
-        assertEquals("Should be size 0 at init", 0, ((MyBSTPriorityQueue<Integer>) queue).getSizeRecursive());
+        assertEquals("Should be size 0 at init", 0, queue.getSizeRecursive());
     }
 
     /**
-     * Test queueing
+     * Test that both {@link MyBSTPriorityQueue#size} and
+     * {@link MyBSTPriorityQueue#getSizeRecursive} and works
+     */
+    @Test
+    public void testSize()
+    {
+        int size = 0;
+        for (Integer i : testValues[0].values)
+        {
+            queue.enqueue(i);
+            size++;
+
+            assertEquals("Size is incorrect", size, queue.size());
+            assertEquals("Recursive size is incorrect", size, queue.getSizeRecursive());
+        }
+
+        for (Integer i : testValues[0].values)
+        {
+            queue.dequeue();
+            size--;
+
+            assertEquals("Size is incorrect", size, queue.size());
+            assertEquals("Recursive size is incorrect", size, queue.getSizeRecursive());
+        }
+    }
+
+    /**
+     * Test queueing (order and exceptions)
      */
     @Test
     public void testQueueing()
     {
-        for (int j = 0; j < testValues.length; j++)
+        for (TestValuesBatch batch : testValues)
         {
-            queue.enqueue(testValues[j]);
-            assertEquals("size incorrect", j + 1, queue.size());
-            assertEquals("size incorrect", j + 1, ((MyBSTPriorityQueue<Integer>) queue).getSizeRecursive());
+            queue = new MyBSTPriorityQueue<Integer>();
+
+            for (Integer i : batch.values)
+                queue.enqueue(i);
+
+            for (Integer i : batch.sorted)
+                assertEquals("Incorrect order [" + batch.description + "]", i, queue.dequeue());
+
+            assertEquals("Size is incorrect after dequeue [" + batch.description + "]", 0, queue.size());
+            assertTrue("Queue not empty after dequeue [" + batch.description + "]", queue.isEmpty());
         }
 
-        for (int j = 0; j < sortedTestValues.length; j++)
+        assertThrows(MyPriorityQueueNullNotAllowedException.class, () ->
         {
-            assertEquals("Incorrect order", sortedTestValues[j], queue.dequeue());
+            queue.enqueue(null);
+        });
+    }
+
+    /**
+     * Test getFront
+     */
+    @Test
+    public void testGetFront()
+    {
+        for (TestValuesBatch batch : testValues)
+        {
+            queue = new MyBSTPriorityQueue<Integer>();
+
+            for (Integer i : batch.values)
+                queue.enqueue(i);
+
+            for (Integer i : batch.sorted)
+            {
+                assertEquals("getFront is incorrect!", i, queue.getFront());
+                queue.dequeue();
+            }
         }
+    }
 
-        assertEquals("size incorrect", 0, queue.size());
-        assertEquals("size incorrect", 0, ((MyBSTPriorityQueue<Integer>) queue).getSizeRecursive());
-        assertTrue("Queue not empty", queue.isEmpty());
-
+    /**
+     * Test methods that should throw when the queue is empty
+     */
+    @Test
+    public void testExceptionsOnEmptyQueue()
+    {
         assertThrows(MyPriorityQueueIsEmptyException.class, () ->
         {
             queue.dequeue();
         });
+
+        assertThrows(MyPriorityQueueIsEmptyException.class, () ->
+        {
+            queue.getFront();
+        });
+    }
+
+    /**
+     * Test that clear works
+     */
+    @Test
+    public void testClear()
+    {
+        for (Integer i : testValues[0].values)
+            queue.enqueue(i);
+
+        queue.clear();
+
+        assertEquals("Size is incorrect after clear", 0, queue.size());
+        assertEquals("Recursive size is incorrect after clear", 0, queue.getSizeRecursive());
+        assertTrue("Queue not empty after clear", queue.isEmpty());
+
+        queue.clear();
+
+        assertEquals("Size is incorrect after another clear", 0, queue.size());
+        assertEquals("Recursive size is incorrect after another clear", 0, queue.getSizeRecursive());
+        assertTrue("Queue not empty after another clear", queue.isEmpty());
     }
 }
